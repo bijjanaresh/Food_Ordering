@@ -1,13 +1,22 @@
-name: learn-github-actions
-run-name: ${{ github.actor }} is learning GitHub Actions
-on: [push]
+
+name: Detect Text File Change
+
+on:
+  push:
+    paths:
+      - '**/*.txt'   # Trigger only when .txt files change
+
 jobs:
-  check-bats-version:
+  check-text-change:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install -g bats
-      - run: bats -v
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check for added lines in .txt files
+        run: |
+          echo "Checking changes in text files..."
+          git diff --unified=0 ${{ github.event.before }} ${{ github.sha }} -- '*.txt' \
+            | grep -E '^\+' \
+            | grep -Ev '^\+\+\+' \
+            || echo "No added lines found."
